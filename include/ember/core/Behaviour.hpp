@@ -17,7 +17,7 @@ public:
 	// Base
 	inline GameObject& game_object() { return *_gameObjectOwner; };
     inline const GameObject& cgame_object() const { return *_gameObjectOwner; };
-    bool is_attached() { return _gameObjectOwner != nullptr; };
+    bool is_attached() const { return _gameObjectOwner != nullptr; };
 public:
 	// Overrideable
     virtual void onStart(){};
