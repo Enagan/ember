@@ -48,6 +48,8 @@ public:
     /// Usefull to quickly access the behaviour as an expression, but unsafe to keep, as it may be unexpectedly destroyed.
     template <typename BehaviourSubType>
 	BehaviourSubType& refBehaviour() throw(std::invalid_argument);
+    template <typename BehaviourSubType>
+	const BehaviourSubType& refBehaviour() const throw(std::invalid_argument);
     
     /// Gets a non-polymorphic weak pointer to a contained behaviour in the GameObject. 
     /// Returns expired weak_ptr if no such behaviour is present.

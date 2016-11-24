@@ -25,6 +25,14 @@ BehaviourSubType& GameObject::refBehaviour() throw(std::invalid_argument) {
 }
 
 template <typename BehaviourSubType>
+const BehaviourSubType& GameObject::refBehaviour() const throw(std::invalid_argument) {
+    if (_behaviours.count(std::type_index(typeid(BehaviourSubType))) == 0) {
+        throw std::invalid_argument("GameObject::refBehaviour - Behaviour " + std::string(typeid(BehaviourSubType).name()) + " not present in GameObject");
+    }
+    return *(static_cast<BehaviourSubType*>(_behaviours.at(std::type_index(typeid(BehaviourSubType))).get()));
+}
+
+template <typename BehaviourSubType>
 std::weak_ptr<BehaviourSubType> GameObject::getBehaviour() {
     if (_behaviours.count(std::type_index(typeid(BehaviourSubType))) == 1) {
         return std::static_pointer_cast<BehaviourSubType>(_behaviours[std::type_index(typeid(BehaviourSubType))]);
