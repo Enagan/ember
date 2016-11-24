@@ -31,7 +31,7 @@ public:
 public:
     inline GameObject::id object_id() const { return _id; }
     inline Scene& scene() { return *_parent_scene; }
-    inline const Scene& cscene() const { return *_parent_scene; }
+    inline const Scene& scene() const { return *_parent_scene; }
     
     /// Adds a behaviour to the GameObject. The Behaviour is emplaced within the game object itself.
     /// A Behaviour can be any class that derives from Behaviour.hpp, but should not be the base heaviour class itself.
