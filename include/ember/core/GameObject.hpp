@@ -28,6 +28,8 @@ public:
 	void onStart();
     void onUpdate(double deltaT);
     void onPostUpdate();
+    void onPostCollision();
+    
 public:
     inline GameObject::id object_id() const { return _id; }
     inline Scene& scene() { return *_parent_scene; }

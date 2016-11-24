@@ -45,6 +45,11 @@ void GameObject::onPostUpdate() {
 		behaviour.second->onPostUpdate();
 	}
 }
+void GameObject::onPostCollision() {
+	for (auto& behaviour : _behaviours) {
+		behaviour.second->onPostCollision();
+	}
+}
 
 void GameObject::Destroy() {
     scene().removeGameObject(object_id());
