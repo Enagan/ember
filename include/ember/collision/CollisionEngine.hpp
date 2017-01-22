@@ -1,7 +1,7 @@
 #ifndef Ember_CollisionEngine_hpp
 #define Ember_CollisionEngine_hpp
 
-#include <set>
+#include <vector>
 #include "ember/core/GameObject.hpp"
 #include "SpatialPartition.hpp"
 
@@ -38,8 +38,8 @@ private:
 private:
     Scene* _owning_scene;
     
-    std::set<GameObject::id> _static_colliders;
-    std::set<GameObject::id> _movable_colliders;
+    std::vector<std::shared_ptr<BaseCollider>> _static_colliders;
+    std::vector<std::shared_ptr<BaseCollider>> _movable_colliders;
     
     std::unique_ptr<SpatialPartition> _spatial_partitioner;
 };
