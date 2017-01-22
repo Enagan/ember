@@ -33,6 +33,13 @@ void Scene::onStart() {
 	}
 }
 
+void Scene::onPreUpdate() {
+    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objectsInScene);
+	for (auto& gameObject : delayed_deletion_copy) {
+		gameObject.second->onPreUpdate();
+	}
+}
+
 void Scene::onUpdate(double deltaT) {
     std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objectsInScene);
 	for (auto& gameObject : delayed_deletion_copy) {

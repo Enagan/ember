@@ -21,6 +21,7 @@ public:
 	Scene& operator=(Scene&& other);
 public:
 	void onStart();
+    void onPreUpdate();
     void onUpdate(double deltaT);
     void onPostUpdate();
     void onCollision();

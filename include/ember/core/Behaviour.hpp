@@ -26,6 +26,7 @@ public:
 public:
 	// Overrideable
     virtual void onStart(){};
+    virtual void onPreUpdate(){};
 	virtual void onUpdate(double /*deltaT*/){};
 	virtual void onPostUpdate(){};
     virtual void onPostCollision(){};

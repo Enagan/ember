@@ -35,6 +35,11 @@ void GameObject::onStart() {
 		behaviour.second->onStart();
 	}
 }
+void GameObject::onPreUpdate() {
+	for (auto& behaviour : _behaviours) {
+		behaviour.second->onPreUpdate();
+	}
+}
 void GameObject::onUpdate(double deltaT) {
 	for (auto& behaviour : _behaviours) {
 		behaviour.second->onUpdate(deltaT);
