@@ -5,7 +5,7 @@
 using namespace ember::collision;
     
 void CollisionEngine::TriggerCollisions() {
-    using CollisionPair = std::pair<GameObject::id, GameObject::id>;
+    using CollisionPair = std::pair<Behaviour::id, Behaviour::id>;
     std::set<CollisionPair> _already_collided;
     std::set<GameObject::id> traversal_copy(_movable_colliders);
     for (const auto& object_id : traversal_copy) {
@@ -14,10 +14,10 @@ void CollisionEngine::TriggerCollisions() {
                 auto collider = weak_collider.lock();
                 for (const std::weak_ptr<BaseCollider>& to_collide_with : GetCollisionShortlistForCollider(collider)) {
                     auto to_collide = to_collide_with.lock();
-                    if((to_collide != nullptr) && collider->CollidesWith(to_collide) && _already_collided.count(CollisionPair(to_collide->game_object().object_id(), object_id)) == 0) {
+                    if((to_collide != nullptr) && collider->CollidesWith(to_collide) && _already_collided.count(CollisionPair(to_collide->behaviour_id(), collider->behaviour_id())) == 0) {
                         collider->CastCollisionEvent(to_collide);
                         to_collide->CastCollisionEvent(collider);
-                        _already_collided.insert(CollisionPair(object_id, to_collide->game_object().object_id()));
+                        _already_collided.insert(CollisionPair(collider->behaviour_id(), to_collide->behaviour_id()));
                     }
                 }
             }

@@ -76,6 +76,7 @@ public:
 private:
     GameObject::id _id = 0;
 	bool _hasStarted{ false };
+    std::size_t _next_behaviour_index = 0;
 	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
     
     // Weak pointer to the scene the gameobject is attached to. If the gameobject exists

@@ -5,6 +5,8 @@ GameObject& GameObject::withBehaviour(Args&&... args) {
     auto type_index = std::type_index(typeid(BehaviourSubType));
     _behaviours.emplace(std::pair<std::type_index, std::shared_ptr<Behaviour>>{type_index, std::make_shared<BehaviourSubType>(std::forward<Args>(args)...)});
     _behaviours[type_index]->setGameObjectOwner(this);
+    auto _id_for_behaviour = _next_behaviour_index++;
+    _behaviours[type_index]->_id = Behaviour::id(_id, _id_for_behaviour);
 	if (_hasStarted) {
 		_behaviours[type_index]->onStart();
 	}
