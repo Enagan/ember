@@ -63,3 +63,63 @@ void GameObject::CastEvent(const EventType& event) {
         }
     }
 }
+
+struct GameObject::SerializableIntoBase {
+    virtual ~SerializableIntoBase() = default;
+};
+
+template <typename SerializableType>
+struct GameObject::SerializableIntoSub : public GameObject::SerializableIntoBase {
+    SerializableIntoSub(const SerializableType& other) : _data(other) {}
+    virtual ~SerializableIntoSub() = default;
+    inline const SerializableType& GetSerializableType() const { return _data; }
+    SerializableType _data;
+};
+
+template <typename SerializableInto>
+bool GameObject::SerializeInto(SerializableInto& into) {
+    bool serialized_something = false;
+    auto type_index = std::type_index(typeid(SerializableInto));
+    
+    if (_serialization_cache.count(type_index) != 0) {
+        into = dynamic_cast<SerializableIntoSub<SerializableInto>*>(_serialization_cache[type_index].get())->GetSerializableType();
+        return true;
+    }
+    
+    for (auto serializable_component : getBehaviours<addons::SerializableInto<SerializableInto>>()) {
+        serializable_component.lock()->SerializeInto(into);
+        serialized_something = true;
+    }
+    if (serialized_something) {
+        _serialization_cache.emplace(
+            std::pair<std::type_index, std::unique_ptr<SerializableIntoBase>>
+                {type_index, std::unique_ptr<SerializableIntoBase>(new SerializableIntoSub<SerializableInto>(into))});
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template <typename SerializableInto>
+bool GameObject::PartialSerializeInto(SerializableInto& into) {
+    bool serialized_something = false;
+    auto type_index = std::type_index(typeid(SerializableInto));
+    
+    if (_partial_serialization_cache.count(type_index) != 0) {
+        into = dynamic_cast<SerializableIntoSub<SerializableInto>*>(_partial_serialization_cache[type_index].get())->GetSerializableType();
+        return true;
+    }
+    
+    for (auto serializable_component : getBehaviours<addons::SerializableInto<SerializableInto>>()) {
+        auto serialized_component = serializable_component.lock()->PartialSerializeInto(into);
+        serialized_something = serialized_something || serialized_component;
+    }
+    if (serialized_something) {
+        _partial_serialization_cache.emplace(
+            std::pair<std::type_index, std::unique_ptr<SerializableIntoBase>>
+                {type_index, std::unique_ptr<SerializableIntoBase>(new SerializableIntoSub<SerializableInto>(into))});
+        return true;
+    } else {
+        return false;
+    }
+}

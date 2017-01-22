@@ -10,6 +10,7 @@
 
 #include "Behaviour.hpp"
 #include "ember/addons/ListensTo.hpp"
+#include "ember/addons/Serializable.hpp"
 
 namespace ember {
 
@@ -71,7 +72,16 @@ public:
     /// Triggers an event through all the child behaviours that have the ListenTo Addon (are subclasses of ListenTo<EventType>)
     template <typename EventType>
 	void CastEvent(const EventType& event);
-    
+
+    /// Calls SerializeInto or PartialSerializeInto on all child behaviours that have the SerializableInto Addon 
+    /// (are subclasses of SerializableInto) The resulting object into, will be cached, as such, further calls to this function
+    /// will return the cached instance of SerializableInto& into. As such, the input parameter type must implement a valid copy
+    /// constructor
+    template <typename SerializableInto>
+    bool SerializeInto(SerializableInto& into);
+    template <typename SerializableInto>
+    bool PartialSerializeInto(SerializableInto& into);
+        
     /// Removes self from scene and deallocates
     void Destroy();
 private:
@@ -79,6 +89,11 @@ private:
 	bool _hasStarted{ false };
     std::size_t _next_behaviour_index = 0;
 	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
+    
+    struct SerializableIntoBase;
+    template <typename SerializableType> struct SerializableIntoSub;
+    std::unordered_map<std::type_index, std::unique_ptr<SerializableIntoBase>> _serialization_cache;
+    std::unordered_map<std::type_index, std::unique_ptr<SerializableIntoBase>> _partial_serialization_cache;
     
     // Weak pointer to the scene the gameobject is attached to. If the gameobject exists
     // The scene WILL exist

@@ -36,6 +36,9 @@ void GameObject::onStart() {
 	}
 }
 void GameObject::onPreUpdate() {
+    // Always assuming behaviours changed. Logic will be able to be more complex once dirtiable parameters are implemented
+    _serialization_cache.clear();
+    _partial_serialization_cache.clear();
 	for (auto& behaviour : _behaviours) {
 		behaviour.second->onPreUpdate();
 	}
