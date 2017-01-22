@@ -10,6 +10,7 @@
 
 #include "Behaviour.hpp"
 #include "ember/addons/ListensTo.hpp"
+#include "ember/addons/Serializable.hpp"
 
 namespace ember {
 
@@ -26,12 +27,15 @@ public:
 	~GameObject();
 public:
 	void onStart();
+    void onPreUpdate();
     void onUpdate(double deltaT);
     void onPostUpdate();
+    void onPostCollision();
+    
 public:
     inline GameObject::id object_id() const { return _id; }
     inline Scene& scene() { return *_parent_scene; }
-    inline const Scene& cscene() const { return *_parent_scene; }
+    inline const Scene& scene() const { return *_parent_scene; }
     
     /// Adds a behaviour to the GameObject. The Behaviour is emplaced within the game object itself.
     /// A Behaviour can be any class that derives from Behaviour.hpp, but should not be the base heaviour class itself.
@@ -48,6 +52,8 @@ public:
     /// Usefull to quickly access the behaviour as an expression, but unsafe to keep, as it may be unexpectedly destroyed.
     template <typename BehaviourSubType>
 	BehaviourSubType& refBehaviour() throw(std::invalid_argument);
+    template <typename BehaviourSubType>
+	const BehaviourSubType& refBehaviour() const throw(std::invalid_argument);
     
     /// Gets a non-polymorphic weak pointer to a contained behaviour in the GameObject. 
     /// Returns expired weak_ptr if no such behaviour is present.
@@ -66,13 +72,28 @@ public:
     /// Triggers an event through all the child behaviours that have the ListenTo Addon (are subclasses of ListenTo<EventType>)
     template <typename EventType>
 	void CastEvent(const EventType& event);
-    
+
+    /// Calls SerializeInto or PartialSerializeInto on all child behaviours that have the SerializableInto Addon 
+    /// (are subclasses of SerializableInto) The resulting object into, will be cached, as such, further calls to this function
+    /// will return the cached instance of SerializableInto& into. As such, the input parameter type must implement a valid copy
+    /// constructor
+    template <typename SerializableInto>
+    bool SerializeInto(SerializableInto& into);
+    template <typename SerializableInto>
+    bool PartialSerializeInto(SerializableInto& into);
+        
     /// Removes self from scene and deallocates
     void Destroy();
 private:
     GameObject::id _id = 0;
 	bool _hasStarted{ false };
+    std::size_t _next_behaviour_index = 0;
 	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
+    
+    struct SerializableIntoBase;
+    template <typename SerializableType> struct SerializableIntoSub;
+    std::unordered_map<std::type_index, std::unique_ptr<SerializableIntoBase>> _serialization_cache;
+    std::unordered_map<std::type_index, std::unique_ptr<SerializableIntoBase>> _partial_serialization_cache;
     
     // Weak pointer to the scene the gameobject is attached to. If the gameobject exists
     // The scene WILL exist

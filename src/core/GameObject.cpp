@@ -35,6 +35,14 @@ void GameObject::onStart() {
 		behaviour.second->onStart();
 	}
 }
+void GameObject::onPreUpdate() {
+    // Always assuming behaviours changed. Logic will be able to be more complex once dirtiable parameters are implemented
+    _serialization_cache.clear();
+    _partial_serialization_cache.clear();
+	for (auto& behaviour : _behaviours) {
+		behaviour.second->onPreUpdate();
+	}
+}
 void GameObject::onUpdate(double deltaT) {
 	for (auto& behaviour : _behaviours) {
 		behaviour.second->onUpdate(deltaT);
@@ -43,6 +51,11 @@ void GameObject::onUpdate(double deltaT) {
 void GameObject::onPostUpdate() {
 	for (auto& behaviour : _behaviours) {
 		behaviour.second->onPostUpdate();
+	}
+}
+void GameObject::onPostCollision() {
+	for (auto& behaviour : _behaviours) {
+		behaviour.second->onPostCollision();
 	}
 }
 

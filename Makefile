@@ -147,7 +147,7 @@ dirs:
 
 # Installs the lib and attached dependencies at a DESTDIR
 .PHONY: install
-install: release
+install:
 	@echo "Installing to $(DESTDIR)/lib & $(DESTDIR)/include"
 	@cp -rf $(BIN_PATH)/. $(DESTDIR)
 
