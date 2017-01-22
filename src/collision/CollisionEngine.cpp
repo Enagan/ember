@@ -25,17 +25,21 @@ void CollisionEngine::TriggerCollisions() {
     }
 }
 
-std::vector<std::weak_ptr<BaseCollider>> CollisionEngine::GetCollisionShortlistForCollider(const std::weak_ptr<BaseCollider>& collider) {
+std::vector<std::weak_ptr<BaseCollider>> CollisionEngine::GetCollisionShortlistForCollider(const std::shared_ptr<BaseCollider>& collider) {
     if (_spatial_partitioner) {
         return _spatial_partitioner->GetPotentiallyCollidingWith(collider);
     } else {
         std::vector<std::weak_ptr<BaseCollider>> result;
         for (const auto& object_id : _static_colliders) {
-            result.push_back(_owning_scene->getGameObject(object_id).getBehaviour<BaseCollider>());
+            for (const auto& other_collider : _owning_scene->getGameObject(object_id).getBehaviours<BaseCollider>()) {
+                result.push_back(other_collider);
+            }
         }
         for (const auto& object_id : _movable_colliders) {
-            if (object_id != collider.lock()->game_object().object_id()) {
-                result.push_back(_owning_scene->getGameObject(object_id).getBehaviour<BaseCollider>());
+            for (const auto& other_collider : _owning_scene->getGameObject(object_id).getBehaviours<BaseCollider>()) {
+                if (collider->behaviour_id() != other_collider.lock()->behaviour_id()) {
+                    result.push_back(other_collider);
+                }
             }
         }
         return result;

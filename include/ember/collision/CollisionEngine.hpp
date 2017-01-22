@@ -31,7 +31,7 @@ private:
     void UnregisterCollider(const std::weak_ptr<BaseCollider>& collider);
     void UpdateSpatialPartition(const std::weak_ptr<BaseCollider>& collider);
     
-    std::vector<std::weak_ptr<BaseCollider>> GetCollisionShortlistForCollider(const std::weak_ptr<BaseCollider>& collider);
+    std::vector<std::weak_ptr<BaseCollider>> GetCollisionShortlistForCollider(const std::shared_ptr<BaseCollider>& collider);
     
     void TriggerCollisions();
     
