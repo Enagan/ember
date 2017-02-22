@@ -30,3 +30,5 @@
 # Binary Folders
 build/*
 bin/*
+test/bin/*
+test/build/*
