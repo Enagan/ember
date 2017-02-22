@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <cstddef>
+#include <stdexcept>
 
 namespace ember {
 
@@ -23,6 +24,15 @@ public:
     bool is_attached() const { return _gameObjectOwner != nullptr; };
     inline Behaviour::id behaviour_id() const { return _id; }
 
+    template <typename BehaviourSubType>
+	bool hasSibling();
+    template <typename BehaviourSubType>
+	BehaviourSubType& refSibling() throw(std::invalid_argument);
+    template <typename BehaviourSubType>
+	const BehaviourSubType& refSibling() const throw(std::invalid_argument);
+    template <typename BehaviourSubType>
+	std::weak_ptr<BehaviourSubType> getSibling();
+
 public:
 	// Overrideable
     virtual void onStart(){};
@@ -39,6 +49,7 @@ private:
     // Weak pointer to owning GameObject instance
 	GameObject* _gameObjectOwner = nullptr;
 };
-
 }
+#include "_impl/Behaviour_impl.hpp"
+
 #endif
