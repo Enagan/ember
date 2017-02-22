@@ -29,7 +29,7 @@ public:
 public:
     inline bool hasStarted() {return _hasStarted;}
 
-	virtual GameObject& addGameObject();
+	GameObject& addGameObject();
     bool hasGameObject(GameObject::id index) const;
     GameObject& getGameObject(GameObject::id index);
     void removeGameObject(GameObject::id index);
