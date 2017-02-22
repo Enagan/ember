@@ -154,7 +154,7 @@ install:
 # Removes all build files
 .PHONY: clean
 clean:
-	@$(RM) -rf build/*
+	@$(RM) -rf build/
 	@$(RM) -rf bin
 
 # Main rule, checks the executable and symlinks to the output
