@@ -1,5 +1,7 @@
-/// Implementation of template methods for Game Object
+#include "ember/core/Behaviour.hpp"
 
+namespace ember {
+/// Implementation of template methods for Game Object
 template <typename BehaviourSubType, typename... Args>
 GameObject& GameObject::withBehaviour(Args&&... args) {
     auto type_index = std::type_index(typeid(BehaviourSubType));
@@ -64,38 +66,72 @@ void GameObject::CastEvent(const EventType& event) {
     }
 }
 
-struct GameObject::SerializableIntoBase {
-    virtual ~SerializableIntoBase() = default;
+struct GameObject::SerializedCacheBase {
+    virtual ~SerializedCacheBase() = default;
+    virtual bool IsCacheValid() = 0;
+    virtual void ClearCachedData() = 0;
 };
 
 template <typename SerializableType>
-struct GameObject::SerializableIntoSub : public GameObject::SerializableIntoBase {
-    SerializableIntoSub(const SerializableType& other) : _data(other) {}
-    virtual ~SerializableIntoSub() = default;
-    inline const SerializableType& GetSerializableType() const { return _data; }
-    SerializableType _data;
+struct GameObject::SerializedCacheSub : public GameObject::SerializedCacheBase {
+    SerializedCacheSub(std::vector<std::weak_ptr<ember::addons::SerializableInto<SerializableType>>> responsible) :
+    _cached_data(nullptr), _behaviours_responsible(std::move(responsible)) {}
+    SerializedCacheSub(SerializableType to_cache,
+        std::vector<std::weak_ptr<ember::addons::SerializableInto<SerializableType>>> responsible) :
+    _cached_data(new SerializableType(std::move(to_cache))), _behaviours_responsible(std::move(responsible)) {}
+    ~SerializedCacheSub() = default;
+    bool IsCacheValid() override {
+        for (auto serializable_behaviour : _behaviours_responsible) {
+            if (serializable_behaviour.lock()->IsSerializationDirty(_cached_data)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    void ClearCachedData() override
+        { _cached_data = nullptr; }
+    inline bool HasCachedData() const
+        { return _cached_data != nullptr; }
+    inline const SerializableType& GetCachedData() const
+        { return *_cached_data; }
+    inline const std::vector<std::weak_ptr<ember::addons::SerializableInto<SerializableType>>>& GetBehavioursResponsible() const
+        { return _behaviours_responsible; }
+    std::shared_ptr<SerializableType> _cached_data;
+    std::vector<std::weak_ptr<ember::addons::SerializableInto<SerializableType>>> _behaviours_responsible;
 };
 
 template <typename SerializableInto>
 bool GameObject::SerializeInto(SerializableInto& into) {
     bool serialized_something = false;
     auto type_index = std::type_index(typeid(SerializableInto));
-    
+
     if (_serialization_cache.count(type_index) != 0) {
-        into = dynamic_cast<SerializableIntoSub<SerializableInto>*>(_serialization_cache[type_index].get())->GetSerializableType();
-        return true;
+        SerializedCacheSub<SerializableInto>* cache =
+            dynamic_cast<SerializedCacheSub<SerializableInto>*>(_serialization_cache[type_index].get());
+        if (cache->HasCachedData()) {
+            into = cache->GetCachedData();
+            return true;
+        } else {
+            return false;
+        }
     }
-    
-    for (auto serializable_component : getBehaviours<addons::SerializableInto<SerializableInto>>()) {
+
+    auto serializable_behaviours = getBehaviours<ember::addons::SerializableInto<SerializableInto>>();
+    for (auto serializable_component : serializable_behaviours) {
         serializable_component.lock()->SerializeInto(into);
         serialized_something = true;
     }
     if (serialized_something) {
         _serialization_cache.emplace(
-            std::pair<std::type_index, std::unique_ptr<SerializableIntoBase>>
-                {type_index, std::unique_ptr<SerializableIntoBase>(new SerializableIntoSub<SerializableInto>(into))});
+            std::pair<std::type_index, std::unique_ptr<SerializedCacheBase>>
+                {type_index,
+                    std::unique_ptr<SerializedCacheBase>(new SerializedCacheSub<SerializableInto>(into, std::move(serializable_behaviours)))});
         return true;
     } else {
+        _serialization_cache.emplace(
+            std::pair<std::type_index, std::unique_ptr<SerializedCacheBase>>
+                {type_index,
+                    std::unique_ptr<SerializedCacheBase>(new SerializedCacheSub<SerializableInto>(std::move(serializable_behaviours)))});
         return false;
     }
 }
@@ -104,22 +140,35 @@ template <typename SerializableInto>
 bool GameObject::PartialSerializeInto(SerializableInto& into) {
     bool serialized_something = false;
     auto type_index = std::type_index(typeid(SerializableInto));
-    
+
     if (_partial_serialization_cache.count(type_index) != 0) {
-        into = dynamic_cast<SerializableIntoSub<SerializableInto>*>(_partial_serialization_cache[type_index].get())->GetSerializableType();
-        return true;
+        SerializedCacheSub<SerializableInto>* cache =
+            dynamic_cast<SerializedCacheSub<SerializableInto>*>(_partial_serialization_cache[type_index].get());
+        if (cache->HasCachedData()) {
+            into = cache->GetCachedData();
+            return true;
+        } else {
+            return false;
+        }
     }
-    
-    for (auto serializable_component : getBehaviours<addons::SerializableInto<SerializableInto>>()) {
+
+    auto serializable_behaviours = getBehaviours<ember::addons::SerializableInto<SerializableInto>>();
+    for (auto serializable_component : serializable_behaviours) {
         auto serialized_component = serializable_component.lock()->PartialSerializeInto(into);
         serialized_something = serialized_something || serialized_component;
     }
     if (serialized_something) {
         _partial_serialization_cache.emplace(
-            std::pair<std::type_index, std::unique_ptr<SerializableIntoBase>>
-                {type_index, std::unique_ptr<SerializableIntoBase>(new SerializableIntoSub<SerializableInto>(into))});
+            std::pair<std::type_index, std::unique_ptr<SerializedCacheBase>>
+                {type_index,
+                    std::unique_ptr<SerializedCacheBase>(new SerializedCacheSub<SerializableInto>(into, std::move(serializable_behaviours)))});
         return true;
     } else {
+        _partial_serialization_cache.emplace(
+            std::pair<std::type_index, std::unique_ptr<SerializedCacheBase>>
+                {type_index,
+                    std::unique_ptr<SerializedCacheBase>(new SerializedCacheSub<SerializableInto>(std::move(serializable_behaviours)))});
         return false;
     }
+}
 }

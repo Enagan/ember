@@ -5,7 +5,7 @@
 
 namespace ember {
 namespace collision {
-    
+
 template <typename MyCollider, typename OtherCollider = class BaseCollider>
 class HandlesCollision : public addons::ListensTo<Collision<MyCollider>> {
 public:

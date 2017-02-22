@@ -1,3 +1,4 @@
+#include <set>
 #include "ember/core/GameObject.hpp"
 #include "ember/core/Scene.hpp"
 #include "ember/core/Behaviour.hpp"
@@ -36,9 +37,6 @@ void GameObject::onStart() {
 	}
 }
 void GameObject::onPreUpdate() {
-    // Always assuming behaviours changed. Logic will be able to be more complex once dirtiable parameters are implemented
-    _serialization_cache.clear();
-    _partial_serialization_cache.clear();
 	for (auto& behaviour : _behaviours) {
 		behaviour.second->onPreUpdate();
 	}
@@ -57,8 +55,29 @@ void GameObject::onPostCollision() {
 	for (auto& behaviour : _behaviours) {
 		behaviour.second->onPostCollision();
 	}
+    CheckForCacheInvalidation();
 }
 
 void GameObject::Destroy() {
     scene().removeGameObject(object_id());
+}
+
+void GameObject::CheckForCacheInvalidation() {
+    std::set<std::type_index> keys_to_remove;
+    for (const auto& keypair : _serialization_cache) {
+        if (!keypair.second->IsCacheValid()) {
+            keys_to_remove.insert(keypair.first);
+        }
+    }
+    for (const auto& keypair : _partial_serialization_cache) {
+        if (!keypair.second->IsCacheValid()) {
+            keys_to_remove.insert(keypair.first);
+        } else {
+            keypair.second->ClearCachedData();
+        }
+    }
+    for (const auto& key : keys_to_remove) {
+        _serialization_cache.erase(key);
+        _partial_serialization_cache.erase(key);
+    }
 }

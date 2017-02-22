@@ -5,7 +5,7 @@
 #include "ember/core/Scene.hpp"
 
 using namespace ember::collision;
-    
+
 void CollisionEngine::TriggerCollisions() {
     using CollisionPair = std::pair<Behaviour::id, Behaviour::id>;
     std::set<CollisionPair> _already_collided;
@@ -13,7 +13,7 @@ void CollisionEngine::TriggerCollisions() {
     for (const auto& movable_collider : traversal_copy) {
         for (const std::weak_ptr<BaseCollider>& to_collide_with : GetCollisionShortlistForCollider(movable_collider)) {
             auto to_collide = to_collide_with.lock();
-            if((to_collide != nullptr) && movable_collider->CollidesWith(to_collide) && 
+            if((to_collide != nullptr) && movable_collider->CollidesWith(to_collide) &&
             _already_collided.count(CollisionPair(to_collide->behaviour_id(), movable_collider->behaviour_id())) == 0) {
                 movable_collider->CastCollisionEvent(to_collide);
                 to_collide->CastCollisionEvent(movable_collider);
@@ -55,7 +55,7 @@ void CollisionEngine::RegisterCollider(const std::weak_ptr<BaseCollider>& collid
     } else {
         _movable_colliders.push_back(shared_collider);
     }
-    
+
     if (_spatial_partitioner) {
         _spatial_partitioner->PartitionCollider(collider);
     }
@@ -75,7 +75,7 @@ void CollisionEngine::UnregisterCollider(const std::weak_ptr<BaseCollider>& coll
         });
         _movable_colliders.erase(it, _movable_colliders.end());
     }
-    
+
     if (_spatial_partitioner) {
         _spatial_partitioner->RemovePartitionedCollider(collider);
     }

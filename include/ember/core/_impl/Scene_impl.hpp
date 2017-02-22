@@ -1,4 +1,5 @@
 /// Implementation of template methods for Scene
+namespace ember {
 
 template <typename EventType>
 void Scene::BroadcastEvent(const EventType& event) {
@@ -6,4 +7,6 @@ void Scene::BroadcastEvent(const EventType& event) {
     for (auto& game_object : traversal_copy) {
         game_object.second->CastEvent<EventType>(event);
     }
+}
+
 }

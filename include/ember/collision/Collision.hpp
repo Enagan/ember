@@ -3,7 +3,7 @@
 
 namespace ember {
 namespace collision {
-    
+
 template <typename MyCollider>
 class Collision {
 public:
