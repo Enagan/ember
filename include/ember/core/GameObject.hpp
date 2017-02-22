@@ -8,12 +8,12 @@
 #include <typeinfo>
 #include <typeindex>
 
-#include "Behaviour.hpp"
 #include "ember/addons/ListensTo.hpp"
 #include "ember/addons/Serializable.hpp"
 
 namespace ember {
-
+class Behaviour;
+class Scene;
 class GameObject {
     friend class Scene;
 public:

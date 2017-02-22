@@ -46,7 +46,7 @@ private:
 
     std::unique_ptr<collision::CollisionEngine> _collision_engine;
 };
+}
 #include "_impl/Scene_impl.hpp"
 
-}
 #endif
