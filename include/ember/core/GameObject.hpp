@@ -84,22 +84,26 @@ public:
 
     /// Removes self from scene and deallocates
     void Destroy();
+
+private:
+    void CheckForCacheInvalidation();
+
 private:
     GameObject::id _id = 0;
 	bool _hasStarted{ false };
     std::size_t _next_behaviour_index = 0;
 	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
 
-    struct SerializableIntoBase;
-    template <typename SerializableType> struct SerializableIntoSub;
-    std::unordered_map<std::type_index, std::unique_ptr<SerializableIntoBase>> _serialization_cache;
-    std::unordered_map<std::type_index, std::unique_ptr<SerializableIntoBase>> _partial_serialization_cache;
+    struct SerializedCacheBase;
+    template <typename SerializableType> struct SerializedCacheSub;
+    std::unordered_map<std::type_index, std::unique_ptr<SerializedCacheBase>> _serialization_cache;
+    std::unordered_map<std::type_index, std::unique_ptr<SerializedCacheBase>> _partial_serialization_cache;
 
     // Weak pointer to the scene the gameobject is attached to. If the gameobject exists
     // The scene WILL exist
     class Scene* _parent_scene = nullptr;
 };
+}
 #include "_impl/GameObject_impl.hpp"
 
-}
 #endif
