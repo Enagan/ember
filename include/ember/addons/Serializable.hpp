@@ -3,7 +3,7 @@
 
 namespace ember {
 namespace addons {
-    
+
 template <typename TypeToSerializeTo>
 class SerializableInto {
 public:

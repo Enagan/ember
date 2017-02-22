@@ -80,12 +80,12 @@ template <typename SerializableInto>
 bool GameObject::SerializeInto(SerializableInto& into) {
     bool serialized_something = false;
     auto type_index = std::type_index(typeid(SerializableInto));
-    
+
     if (_serialization_cache.count(type_index) != 0) {
         into = dynamic_cast<SerializableIntoSub<SerializableInto>*>(_serialization_cache[type_index].get())->GetSerializableType();
         return true;
     }
-    
+
     for (auto serializable_component : getBehaviours<addons::SerializableInto<SerializableInto>>()) {
         serializable_component.lock()->SerializeInto(into);
         serialized_something = true;
@@ -104,12 +104,12 @@ template <typename SerializableInto>
 bool GameObject::PartialSerializeInto(SerializableInto& into) {
     bool serialized_something = false;
     auto type_index = std::type_index(typeid(SerializableInto));
-    
+
     if (_partial_serialization_cache.count(type_index) != 0) {
         into = dynamic_cast<SerializableIntoSub<SerializableInto>*>(_partial_serialization_cache[type_index].get())->GetSerializableType();
         return true;
     }
-    
+
     for (auto serializable_component : getBehaviours<addons::SerializableInto<SerializableInto>>()) {
         auto serialized_component = serializable_component.lock()->PartialSerializeInto(into);
         serialized_something = serialized_something || serialized_component;
