@@ -12,11 +12,12 @@ GameObject& GameObject::withBehaviour(Args&&... args) {
 	if (_hasStarted) {
 		_behaviours[type_index]->onStart();
 	}
+    _behaviours_changed = true;
 	return *this;
 }
 
 template <typename BehaviourSubType>
-bool GameObject::hasBehaviour() {
+bool GameObject::hasBehaviour() const {
     return _behaviours.count(std::type_index(typeid(BehaviourSubType))) != 0;
 }
 

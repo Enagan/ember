@@ -45,7 +45,7 @@ public:
 
     /// Checks if the Game Object has a behaviour of the specified type (non-polymorphic, only accounts for behaviours of the exact type provided)
     template <typename BehaviourSubType>
-	bool hasBehaviour();
+	bool hasBehaviour() const;
 
     /// Fetches a non-polymorphic reference to a contained behaviour in the GameObject.
     /// Throws an exception if no such behaviour is present.
@@ -93,6 +93,7 @@ private:
 	bool _hasStarted{ false };
     std::size_t _next_behaviour_index = 0;
 	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
+    bool _behaviours_changed = false;
 
     struct SerializedCacheBase;
     template <typename SerializableType> struct SerializedCacheSub;

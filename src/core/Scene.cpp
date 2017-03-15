@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ember/core/Scene.hpp"
 #include "ember/collision/CollisionEngine.hpp"
 
@@ -31,13 +32,23 @@ void Scene::onStart() {
 	for (auto& gameObject : delayed_deletion_copy) {
 		gameObject.second->onStart();
 	}
+    for (auto& system_in_scene : _systems_in_scene) {
+        system_in_scene.second->onStart();
+    }
 }
 
 void Scene::onPreUpdate() {
     std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objectsInScene);
 	for (auto& gameObject : delayed_deletion_copy) {
 		gameObject.second->onPreUpdate();
+        if(gameObject.second->_behaviours_changed) {
+            FilterGameObjectThroughAllSystems(gameObject.second);
+        }
 	}
+    std::cout << "Heh" << std::endl;
+    for (auto& system_in_scene : _systems_in_scene) {
+        system_in_scene.second->onPreUpdate();
+    }
 }
 
 void Scene::onUpdate(double deltaT) {
@@ -45,6 +56,9 @@ void Scene::onUpdate(double deltaT) {
 	for (auto& gameObject : delayed_deletion_copy) {
 		gameObject.second->onUpdate(deltaT);
 	}
+    for (auto& system_in_scene : _systems_in_scene) {
+        system_in_scene.second->onUpdate(deltaT);
+    }
 }
 
 void Scene::onPostUpdate() {
@@ -52,6 +66,9 @@ void Scene::onPostUpdate() {
 	for (auto& gameObject : delayed_deletion_copy) {
 		gameObject.second->onPostUpdate();
 	}
+    for (auto& system_in_scene : _systems_in_scene) {
+        system_in_scene.second->onPostUpdate();
+    }
 }
 
 void Scene::onCollision() {
@@ -92,4 +109,16 @@ void Scene::removeGameObject(GameObject::id index) {
 
 collision::CollisionEngine& Scene::CollisionEngine() {
     return *_collision_engine;
+}
+
+void Scene::FilterGameObjectThroughAllSystems(const std::shared_ptr<GameObject>& object) {
+    for (auto& system_in_scene : _systems_in_scene) {
+        system_in_scene.second->FilterGameObject(object);
+    }
+}
+
+void Scene::FilterAllGameObjectsThroughSystem(const std::shared_ptr<BaseSystem>& system_to_filter) {
+    for (const auto& gameObject : _objectsInScene) {
+        system_to_filter->FilterGameObject(gameObject.second);
+    }
 }
