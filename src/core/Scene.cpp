@@ -45,7 +45,6 @@ void Scene::onPreUpdate() {
             FilterGameObjectThroughAllSystems(gameObject.second);
         }
 	}
-    std::cout << "Heh" << std::endl;
     for (auto& system_in_scene : _systems_in_scene) {
         system_in_scene.second->onPreUpdate();
     }

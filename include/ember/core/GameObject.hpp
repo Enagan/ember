@@ -61,6 +61,8 @@ public:
     ///  or to potentially lock it for access post GameObject destruction.
     template <typename BehaviourSubType>
 	std::weak_ptr<BehaviourSubType> getBehaviour();
+    template <typename BehaviourSubType>
+	std::weak_ptr<const BehaviourSubType> getBehaviour() const;
 
     /// Gets all weak pointers of behaviours that either are a BehaviourType or subclasses of it.
     /// Usefull if you need to fetch all behaviours with a common parent, such as behaviour addons (for example, SerializableInto's).
@@ -68,6 +70,8 @@ public:
     ///   if you are trying to reach a specific component.
     template <typename BehaviourType>
 	std::vector<std::weak_ptr<BehaviourType>> getBehaviours();
+    template <typename BehaviourType>
+    std::vector<std::weak_ptr<const BehaviourType>> getBehaviours() const;
 
     /// Triggers an event through all the child behaviours that have the ListenTo Addon (are subclasses of ListenTo<EventType>)
     template <typename EventType>

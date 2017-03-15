@@ -63,11 +63,11 @@ private:
 };
 
 template <class... RequiredBehaviours>
-struct ExcludeBehaviours {
+struct ExcludesBehaviours {
 public:
     static const std::function<bool(const GameObject& object)>& GetFilterFun() {
         static std::function<bool(const GameObject& object)> filter = [](const GameObject& object) {
-            return InternalFilterForExcludes(object, ExcludeBehaviours());
+            return InternalFilterForExcludes(object, ExcludesBehaviours());
         };
         return filter;
     }
@@ -75,26 +75,26 @@ public:
 private:
 
     template <class... Args>
-    static constexpr bool InternalFilterForExcludes(const GameObject&, ExcludeBehaviours<Args...>) {
+    static constexpr bool InternalFilterForExcludes(const GameObject&, ExcludesBehaviours<Args...>) {
         return true;
     }
 
     template <class T, class... Args>
-    static constexpr bool InternalFilterForExcludes(const GameObject& object, ExcludeBehaviours<T, Args...>) {
+    static constexpr bool InternalFilterForExcludes(const GameObject& object, ExcludesBehaviours<T, Args...>) {
         bool passes_filter_for_t = !object.hasBehaviour<T>();
         if (passes_filter_for_t) {
-            return InternalFilterForExcludes(object, ExcludeBehaviours<Args...>());
+            return InternalFilterForExcludes(object, ExcludesBehaviours<Args...>());
         }
         return false;
     }
 };
 
 template <class... RequiredBehaviours>
-struct PolymorphicExcludeBehaviours {
+struct PolymorphicExcludesBehaviours {
 public:
     static const std::function<bool(const GameObject& object)>& GetFilterFun() {
         static std::function<bool(const GameObject& object)> filter = [](const GameObject& object) {
-            return InternalFilterForChilds(object, PolymorphicExcludeBehaviours());
+            return InternalFilterForChilds(object, PolymorphicExcludesBehaviours());
         };
         return filter;
     }
@@ -102,15 +102,15 @@ public:
 private:
 
     template <class... Args>
-    static constexpr bool InternalFilterForChilds(const GameObject&, PolymorphicExcludeBehaviours<Args...>) {
+    static constexpr bool InternalFilterForChilds(const GameObject&, PolymorphicExcludesBehaviours<Args...>) {
         return true;
     }
 
     template <class T, class... Args>
-    static constexpr bool InternalFilterForChilds(const GameObject& object, PolymorphicExcludeBehaviours<T, Args...>) {
+    static constexpr bool InternalFilterForChilds(const GameObject& object, PolymorphicExcludesBehaviours<T, Args...>) {
         bool passes_filter_for_t = object.getBehaviours<T>().size() == 0;
         if (passes_filter_for_t) {
-            return InternalFilterForChilds(object, PolymorphicExcludeBehaviours<Args...>());
+            return InternalFilterForChilds(object, PolymorphicExcludesBehaviours<Args...>());
         }
         return false;
     }

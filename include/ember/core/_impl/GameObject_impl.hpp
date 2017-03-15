@@ -45,10 +45,30 @@ std::weak_ptr<BehaviourSubType> GameObject::getBehaviour() {
     return std::weak_ptr<BehaviourSubType>();
 }
 
+template <typename BehaviourSubType>
+std::weak_ptr<const BehaviourSubType> GameObject::getBehaviour() const {
+    if (_behaviours.count(std::type_index(typeid(BehaviourSubType))) == 1) {
+        return std::static_pointer_cast<BehaviourSubType>(_behaviours.at(std::type_index(typeid(BehaviourSubType))));
+    }
+    return std::weak_ptr<BehaviourSubType>();
+}
+
 template <typename BehaviourType>
 std::vector<std::weak_ptr<BehaviourType>> GameObject::getBehaviours() {
     std::vector<std::weak_ptr<BehaviourType>> return_vector;
-    for (auto behaviour : _behaviours) {
+    for (auto& behaviour : _behaviours) {
+        if(auto cast_component = std::dynamic_pointer_cast<BehaviourType>(behaviour.second))
+        {
+            return_vector.push_back(cast_component);
+        }
+    }
+    return return_vector;
+}
+
+template <typename BehaviourType>
+std::vector<std::weak_ptr<const BehaviourType>> GameObject::getBehaviours() const {
+    std::vector<std::weak_ptr<const BehaviourType>> return_vector;
+    for (const auto& behaviour : _behaviours) {
         if(auto cast_component = std::dynamic_pointer_cast<BehaviourType>(behaviour.second))
         {
             return_vector.push_back(cast_component);
@@ -59,7 +79,7 @@ std::vector<std::weak_ptr<BehaviourType>> GameObject::getBehaviours() {
 
 template <typename EventType>
 void GameObject::CastEvent(const EventType& event) {
-    for (auto behaviour : _behaviours) {
+    for (auto& behaviour : _behaviours) {
         if(auto cast_component = std::dynamic_pointer_cast<addons::ListensTo<EventType>>(behaviour.second))
         {
             cast_component->Handle(event);
