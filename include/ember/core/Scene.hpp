@@ -44,9 +44,10 @@ private:
     void FilterGameObjectThroughAllSystems(const std::shared_ptr<GameObject>& object);
     void FilterAllGameObjectsThroughSystem(const std::shared_ptr<BaseSystem>& system);
 
+    void Swap(Scene&& other);
 private:
     GameObject::id _next_game_object_index = 0;
-    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> _objectsInScene;
+    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> _objects_in_scene;
 	bool _hasStarted{ false };
 
 	std::unordered_map<std::type_index, std::shared_ptr<BaseSystem>> _systems_in_scene;
