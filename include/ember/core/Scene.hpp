@@ -10,9 +10,6 @@
 #include <typeindex>
 
 namespace ember {
-namespace collision {
-    class CollisionEngine;
-}
 class Scene {
 public:
 	Scene();
@@ -26,8 +23,6 @@ public:
     void onPreUpdate();
     void onUpdate(double deltaT);
     void onPostUpdate();
-    void onCollision();
-    void onPostCollision();
 public:
     inline bool hasStarted() {return _hasStarted;}
 
@@ -45,7 +40,6 @@ public:
     template <typename EventType>
 	void BroadcastEvent(const EventType& event);
 
-    collision::CollisionEngine& CollisionEngine();
 private:
     void FilterGameObjectThroughAllSystems(const std::shared_ptr<GameObject>& object);
     void FilterAllGameObjectsThroughSystem(const std::shared_ptr<BaseSystem>& system);
@@ -56,8 +50,6 @@ private:
 	bool _hasStarted{ false };
 
 	std::unordered_map<std::type_index, std::shared_ptr<BaseSystem>> _systems_in_scene;
-
-    std::unique_ptr<collision::CollisionEngine> _collision_engine;
 };
 }
 #include "_impl/Scene_impl.hpp"

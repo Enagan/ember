@@ -6,6 +6,7 @@
 #include "Collision.hpp"
 
 namespace ember {
+namespace system {
 namespace collision {
 
 class BaseCollider : public Behaviour {
@@ -40,6 +41,7 @@ public:
     }
 };
 
+}
 }
 }
 #endif

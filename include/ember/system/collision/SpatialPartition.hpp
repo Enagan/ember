@@ -6,6 +6,7 @@
 
 namespace ember {
     class Scene;
+namespace system {
 namespace collision {
 class SpatialPartition {
     friend class CollisionEngine;
@@ -23,4 +24,6 @@ private:
 };
 }
 }
+}
+
 #endif

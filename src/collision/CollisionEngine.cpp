@@ -1,10 +1,10 @@
 #include <set>
 #include <algorithm>
-#include "ember/collision/CollisionEngine.hpp"
-#include "ember/collision/Collider.hpp"
+#include "ember/system/collision/CollisionEngine.hpp"
+#include "ember/system/collision/Collider.hpp"
 #include "ember/core/Scene.hpp"
 
-using namespace ember::collision;
+using namespace ember::system::collision;
 
 void CollisionEngine::TriggerCollisions() {
     using CollisionPair = std::pair<Behaviour::id, Behaviour::id>;

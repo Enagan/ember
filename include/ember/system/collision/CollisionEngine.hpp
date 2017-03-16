@@ -6,7 +6,9 @@
 #include "SpatialPartition.hpp"
 
 namespace ember {
+namespace system {
 namespace collision {
+
 class CollisionEngine {
     friend class BaseCollider;
     friend class ember::Scene;
@@ -43,6 +45,8 @@ private:
 
     std::unique_ptr<SpatialPartition> _spatial_partitioner;
 };
+
+}
 }
 }
 

@@ -4,6 +4,7 @@
 #include "Collision.hpp"
 
 namespace ember {
+namespace system {
 namespace collision {
 
 template <typename MyCollider, typename OtherCollider = class BaseCollider>
@@ -17,5 +18,7 @@ public:
     virtual void HandleCollisionWith(const std::shared_ptr<OtherCollider>& collided_with) = 0;
 };
 
-}}
+}
+}
+}
 #endif

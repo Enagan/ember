@@ -1,4 +1,5 @@
 namespace ember {
+namespace system {
 namespace collision {
 
 template <typename SpatialPartitionSubType, typename... Args>
@@ -17,5 +18,6 @@ SpatialPartitionSubType& CollisionEngine::refSpatialPartitionerOfType() {
     return *(dynamic_cast<SpatialPartitionSubType*>(_spatial_partitioner.get()));
 }
 
+}
 }
 }
