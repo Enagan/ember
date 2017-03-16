@@ -17,12 +17,19 @@ public:
     BaseSystem(const BaseSystem& other) = delete;
     BaseSystem& operator=(const BaseSystem& other) = delete;
 
+// Overrideable
 public:
     virtual void onStart() {}
     virtual void onPreUpdate(GameObject& /*object*/) {}
     virtual void onUpdate(double /*deltaT*/, GameObject& /*object*/) {}
     virtual void onPostUpdate(GameObject& /*object*/) {}
 
+protected:
+    virtual void onGameObjectAdded(GameObject& /*object*/) {}
+    virtual void onGameObjectRemoved(GameObject& /*object*/) {}
+
+// Internal
+public:
     inline ember::Scene& scene() { return *_parent_scene; }
     inline const ember::Scene& scene() const { return *_parent_scene; }
 
