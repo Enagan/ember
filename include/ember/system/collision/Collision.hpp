@@ -2,6 +2,7 @@
 #define Ember_Collision_hpp
 
 namespace ember {
+namespace system {
 namespace collision {
 
 template <typename MyCollider>
@@ -13,5 +14,7 @@ private:
     std::weak_ptr<class BaseCollider> _collided_with;
 };
 
-}}
+}
+}
+}
 #endif

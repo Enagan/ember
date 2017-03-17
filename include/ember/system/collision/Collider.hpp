@@ -6,13 +6,13 @@
 #include "Collision.hpp"
 
 namespace ember {
+namespace system {
 namespace collision {
 
 class BaseCollider : public Behaviour {
+    friend class CollisionEngine;
 public:
     BaseCollider(bool is_static);
-
-    virtual void onStart() override;
 	virtual void onPostUpdate() override;
     virtual void onEnd() override;
 
@@ -26,6 +26,7 @@ public:
 
 private:
     bool _is_static;
+    bool _is_collision_engine_attached = false;
 };
 
 template<typename ColliderSubType>
@@ -40,6 +41,7 @@ public:
     }
 };
 
+}
 }
 }
 #endif

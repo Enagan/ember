@@ -50,11 +50,6 @@ void GameObject::onPostUpdate() {
 	for (auto& behaviour : _behaviours) {
 		behaviour.second->onPostUpdate();
 	}
-}
-void GameObject::onPostCollision() {
-	for (auto& behaviour : _behaviours) {
-		behaviour.second->onPostCollision();
-	}
     CheckForCacheInvalidation();
 }
 

@@ -30,7 +30,6 @@ public:
     void onPreUpdate();
     void onUpdate(double deltaT);
     void onPostUpdate();
-    void onPostCollision();
 
 public:
     inline GameObject::id object_id() const { return _id; }
@@ -45,7 +44,7 @@ public:
 
     /// Checks if the Game Object has a behaviour of the specified type (non-polymorphic, only accounts for behaviours of the exact type provided)
     template <typename BehaviourSubType>
-	bool hasBehaviour();
+	bool hasBehaviour() const;
 
     /// Fetches a non-polymorphic reference to a contained behaviour in the GameObject.
     /// Throws an exception if no such behaviour is present.
@@ -61,6 +60,8 @@ public:
     ///  or to potentially lock it for access post GameObject destruction.
     template <typename BehaviourSubType>
 	std::weak_ptr<BehaviourSubType> getBehaviour();
+    template <typename BehaviourSubType>
+	std::weak_ptr<const BehaviourSubType> getBehaviour() const;
 
     /// Gets all weak pointers of behaviours that either are a BehaviourType or subclasses of it.
     /// Usefull if you need to fetch all behaviours with a common parent, such as behaviour addons (for example, SerializableInto's).
@@ -68,6 +69,8 @@ public:
     ///   if you are trying to reach a specific component.
     template <typename BehaviourType>
 	std::vector<std::weak_ptr<BehaviourType>> getBehaviours();
+    template <typename BehaviourType>
+    std::vector<std::weak_ptr<const BehaviourType>> getBehaviours() const;
 
     /// Triggers an event through all the child behaviours that have the ListenTo Addon (are subclasses of ListenTo<EventType>)
     template <typename EventType>
@@ -93,6 +96,7 @@ private:
 	bool _hasStarted{ false };
     std::size_t _next_behaviour_index = 0;
 	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
+    bool _behaviours_changed = false;
 
     struct SerializedCacheBase;
     template <typename SerializableType> struct SerializedCacheSub;
