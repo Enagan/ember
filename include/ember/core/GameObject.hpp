@@ -30,6 +30,7 @@ public:
     void onPreUpdate();
     void onUpdate(double deltaT);
     void onPostUpdate();
+    void onEnd();
 
 public:
     inline GameObject::id object_id() const { return _id; }
@@ -94,6 +95,7 @@ private:
 private:
     GameObject::id _id = 0;
 	bool _hasStarted{ false };
+    bool _hasEnded{ false };
     std::size_t _next_behaviour_index = 0;
 	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
     bool _behaviours_changed = false;

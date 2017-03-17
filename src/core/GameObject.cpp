@@ -15,11 +15,7 @@ GameObject::GameObject(GameObject&& other) : _hasStarted(other._hasStarted){
 }
 
 GameObject::~GameObject() {
-    // Clear components gameobject pointer so they can deal with un-atachment
-    for (auto& behaviour : _behaviours) {
-        behaviour.second->onEnd();
-		behaviour.second->setGameObjectOwner(nullptr);
-	}
+    onEnd();
 }
 
 GameObject& GameObject::operator=(GameObject&& other) {
@@ -52,6 +48,18 @@ void GameObject::onPostUpdate() {
 	}
     CheckForCacheInvalidation();
 }
+
+void GameObject::onEnd() {
+    if (_hasEnded) {
+        return;
+    }
+    for (auto& behaviour : _behaviours) {
+        behaviour.second->onEnd();
+        behaviour.second->setGameObjectOwner(nullptr);
+    }
+    _hasEnded = true;
+}
+
 
 void GameObject::Destroy() {
     scene().removeGameObject(object_id());

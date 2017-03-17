@@ -5,7 +5,12 @@ using namespace ember;
 
 Scene::Scene() {};
 
-Scene::~Scene() {};
+Scene::~Scene() {
+    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
+	for (auto& gameObject : delayed_deletion_copy) {
+		gameObject.second->onEnd();
+	}
+};
 
 Scene::Scene(Scene&& other) {
     Swap(std::move(other));
