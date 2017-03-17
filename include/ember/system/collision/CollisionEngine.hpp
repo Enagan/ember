@@ -1,24 +1,34 @@
 #ifndef Ember_CollisionEngine_hpp
 #define Ember_CollisionEngine_hpp
 
-#include <vector>
+#include <list>
 #include "ember/core/GameObject.hpp"
+#include "ember/core/System.hpp"
 #include "SpatialPartition.hpp"
 
 namespace ember {
 namespace system {
 namespace collision {
 
-class CollisionEngine {
+class CollisionEngine : public System<PolymorphicRequiresBehaviours<BaseCollider>> {
     friend class BaseCollider;
-    friend class ember::Scene;
 public:
     CollisionEngine() = default;
 	CollisionEngine(const CollisionEngine& other) = delete;
     CollisionEngine& operator=(const CollisionEngine& other) = delete;
 
-    inline Scene& scene() { return *_owning_scene; }
+// From System
+public:
+    virtual void onPreUpdate() override {} // No work to be done on PreUpdate
+    virtual void onUpdate(double /*deltaT*/) override {} // No work to be done onUpdate
+    virtual void onPostUpdate() override;
 
+protected:
+    virtual void onGameObjectAdded(const std::shared_ptr<GameObject>& shared_obj) override;
+    virtual void onGameObjectRemoved(const std::shared_ptr<GameObject>&) override {}
+
+// Collision Engine
+public:
     template <typename SpatialPartitionSubType, typename... Args>
 	void withSpatialPartitioner(Args&&... args);
 
@@ -29,20 +39,14 @@ public:
 	SpatialPartitionSubType& refSpatialPartitionerOfType();
 
 private:
-    void RegisterCollider(const std::weak_ptr<BaseCollider>& collider);
-    void UnregisterCollider(const std::weak_ptr<BaseCollider>& collider);
-    void UpdateSpatialPartition(const std::weak_ptr<BaseCollider>& collider);
-
     std::vector<std::weak_ptr<BaseCollider>> GetCollisionShortlistForCollider(const std::shared_ptr<BaseCollider>& collider);
 
-    void TriggerCollisions();
+    void UpdateSpatialPartition(const std::weak_ptr<BaseCollider>& collider);
+    void UnregisterCollider(const std::weak_ptr<BaseCollider>& collider);
 
 private:
-    Scene* _owning_scene;
-
-    std::vector<std::shared_ptr<BaseCollider>> _static_colliders;
-    std::vector<std::shared_ptr<BaseCollider>> _movable_colliders;
-
+    std::list<std::weak_ptr<BaseCollider>> _static_colliders;
+    std::list<std::weak_ptr<BaseCollider>> _movable_colliders;
     std::unique_ptr<SpatialPartition> _spatial_partitioner;
 };
 

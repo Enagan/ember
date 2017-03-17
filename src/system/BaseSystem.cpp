@@ -4,12 +4,18 @@ namespace ember {
 
 void BaseSystem::FilterGameObject(const std::shared_ptr<GameObject>& shared_obj) {
     if (_filter_fun(*shared_obj)) {
-        _managed_objects[shared_obj->object_id()] = shared_obj;
-        onGameObjectAdded(*shared_obj);
+        onGameObjectAdded(shared_obj);
     } else {
-        _managed_objects.erase(shared_obj->object_id());
-        onGameObjectRemoved(*shared_obj);
+        onGameObjectRemoved(shared_obj);
     }
+}
+
+void BaseSystem::onGameObjectAdded(const std::shared_ptr<GameObject>& shared_obj) {
+    _managed_objects[shared_obj->object_id()] = shared_obj;
+}
+
+void BaseSystem::onGameObjectRemoved(const std::shared_ptr<GameObject>& shared_obj) {
+    _managed_objects.erase(shared_obj->object_id());
 }
 
 void BaseSystem::onPreUpdate() {

@@ -15,8 +15,16 @@ void Scene::attachSystem(Args&&... args) {
 }
 
 template <typename SystemSubType>
-bool Scene::hasSystem() {
+bool Scene::hasSystem() const {
     return _systems_in_scene.count(std::type_index(typeid(SystemSubType))) != 0;
+}
+
+template <typename SystemSubType>
+SystemSubType& Scene::refSystem() throw(std::invalid_argument) {
+    if (_systems_in_scene.count(std::type_index(typeid(SystemSubType))) == 0) {
+        throw std::invalid_argument("Scene::refSystem - System " + std::string(typeid(SystemSubType).name()) + " not present in Scene");
+    }
+    return *(static_cast<SystemSubType*>(_systems_in_scene[std::type_index(typeid(SystemSubType))].get()));
 }
 
 template <typename EventType>

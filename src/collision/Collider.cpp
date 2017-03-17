@@ -7,16 +7,14 @@ using namespace ember::system::collision;
 
 BaseCollider::BaseCollider(bool is_static) : _is_static(is_static) {};
 
-void BaseCollider::onStart() {
-    //game_object().scene().CollisionEngine().RegisterCollider(weak_from_this());
-}
-
 void BaseCollider::onPostUpdate() {
-    /*if (!_is_static) {
-        game_object().scene().CollisionEngine().UpdateSpatialPartition(weak_from_this());
-    }*/
+    if(_is_collision_engine_attached && !_is_static && game_object().scene().hasSystem<CollisionEngine>()) {
+        game_object().scene().refSystem<CollisionEngine>().UpdateSpatialPartition(weak_from_this());
+    }
 }
 
 void BaseCollider::onEnd() {
-    //game_object().scene().CollisionEngine().UnregisterCollider(weak_from_this());
+    if(_is_collision_engine_attached && game_object().scene().hasSystem<CollisionEngine>()) {
+        game_object().scene().refSystem<CollisionEngine>().UnregisterCollider(weak_from_this());
+    }
 }

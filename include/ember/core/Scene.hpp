@@ -34,7 +34,9 @@ public:
 	template <typename SystemSubType, typename... Args>
     void attachSystem(Args&&... args);
     template <typename SystemSubType>
-	bool hasSystem();
+	bool hasSystem() const;
+    template <typename SystemSubType>
+	SystemSubType& refSystem() throw(std::invalid_argument);
 
     /// Triggers an event through all the child components that are subclasses of ListenTo<EventType>
     template <typename EventType>
