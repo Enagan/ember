@@ -20,8 +20,8 @@ public:
 // From System
 public:
     virtual void onPreUpdate() override {} // No work to be done on PreUpdate
-    virtual void onUpdate(double /*deltaT*/) override {} // No work to be done onUpdate
-    virtual void onPostUpdate() override;
+    virtual void onUpdate(double /*deltaT*/) override;
+    virtual void onPostUpdate() override {} // No work to be done onUpdate
 
 protected:
     virtual void onGameObjectAdded(const std::shared_ptr<GameObject>& shared_obj) override;

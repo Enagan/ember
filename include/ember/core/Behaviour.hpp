@@ -39,7 +39,6 @@ public:
     virtual void onPreUpdate(){};
 	virtual void onUpdate(double /*deltaT*/){};
 	virtual void onPostUpdate(){};
-    virtual void onPostCollision(){};
     virtual void onEnd(){};
 private:
 	void setGameObjectOwner(GameObject* gameObjectOwner) { _gameObjectOwner = gameObjectOwner; }

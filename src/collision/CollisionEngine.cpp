@@ -6,7 +6,7 @@
 
 using namespace ember::system::collision;
 
-void CollisionEngine::onPostUpdate() {
+void CollisionEngine::onUpdate(double /*deltaT*/) {
     using CollisionPair = std::pair<Behaviour::id, Behaviour::id>;
     std::set<CollisionPair> _already_collided;
     for (auto iter = _movable_colliders.begin(); iter != _movable_colliders.end(); ) {

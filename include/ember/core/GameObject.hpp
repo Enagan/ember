@@ -30,7 +30,6 @@ public:
     void onPreUpdate();
     void onUpdate(double deltaT);
     void onPostUpdate();
-    void onPostCollision();
 
 public:
     inline GameObject::id object_id() const { return _id; }
