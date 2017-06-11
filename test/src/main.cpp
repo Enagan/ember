@@ -29,12 +29,12 @@ public:
     int _aquela_base;
 };
 
-class LaughSystem : public ember::System<ember::system::CompositeFilter<
-    ember::system::PolymorphicRequiresBehaviours<LolBehaviour>
-    ,ember::system::RequiresBehaviours<LelBehaviour>
-    ,ember::system::ExcludesBehaviours<HueHueHueBehaviour>
-    //,ember::system::PolymorphicExcludesBehaviours<LolBehaviour>
-    >> {
+class Laughsys : public ember::System<ember::sys::CompositeFilter<
+    ember::sys::PolymorphicRequiresBehaviours<LolBehaviour>
+    ,ember::sys::RequiresBehaviours<LelBehaviour>
+    ,ember::sys::ExcludesBehaviours<HueHueHueBehaviour>>>
+    //,ember::System::PolymorphicExcludesBehaviours<LolBehaviour>
+    {
     virtual void onUpdate(double, ember::GameObject& object) override {
         if (object.hasBehaviour<LolBehaviour>()) {
             std::cout << "Lols: " << object.refBehaviour<LolBehaviour>()._aquela_base << std::endl;
@@ -48,7 +48,7 @@ class LaughSystem : public ember::System<ember::system::CompositeFilter<
 
 int main(int, const char *[]){
     ember::Scene scene;
-    scene.attachSystem<LaughSystem>();
+    scene.attachSystem<Laughsys>();
     for (size_t i = 0; i < 1; i++) {
         std::cout << scene.addGameObject().withBehaviour<LolBehaviour>(1000+i).object_id() << std::endl;
     }
@@ -69,8 +69,6 @@ int main(int, const char *[]){
         std::cout << scene.addGameObject().withBehaviour<LulBehaviour>(5000+i).withBehaviour<LelBehaviour>(5000+i).object_id() << std::endl;
     }
 
-    scene.onStart();
-    scene.onPreUpdate();
-    scene.onUpdate(3);
+    scene.RunUpdateCycle(3);
     return 0;
 }
