@@ -1,4 +1,5 @@
 #include "ember/core/Behaviour.hpp"
+#include <algorithm>
 
 namespace ember {
 /// Implementation of template methods for Game Object
@@ -13,6 +14,7 @@ GameObject& GameObject::withBehaviour(Args&&... args) {
 		_behaviours[type_index]->onStart();
 	}
     _behaviours_changed = true;
+    _get_behaviours_cache.clear();
 	return *this;
 }
 
@@ -53,28 +55,48 @@ std::weak_ptr<const BehaviourSubType> GameObject::getBehaviour() const {
     return std::weak_ptr<BehaviourSubType>();
 }
 
-template <typename BehaviourType>
-std::vector<std::weak_ptr<BehaviourType>> GameObject::getBehaviours() {
-    std::vector<std::weak_ptr<BehaviourType>> return_vector;
-    for (auto& behaviour : _behaviours) {
-        if(auto cast_component = std::dynamic_pointer_cast<BehaviourType>(behaviour.second))
-        {
-            return_vector.push_back(cast_component);
+template <typename BehaviourSubType>
+std::vector<std::weak_ptr<BehaviourSubType>> GameObject::getBehaviours() {
+    auto behaviour_sub_type_index = std::type_index(typeid(BehaviourSubType));
+    std::vector<std::weak_ptr<BehaviourSubType>> output;
+    if (_get_behaviours_cache.count(behaviour_sub_type_index) != 0) {
+        auto& cached_output = _get_behaviours_cache[behaviour_sub_type_index];
+        std::transform(cached_output.begin(), cached_output.end(), std::back_inserter(output),
+            [](const std::weak_ptr<Behaviour>& cached_behaviour) {
+                return std::dynamic_pointer_cast<BehaviourSubType>(cached_behaviour.lock());
+            });
+    } else {
+        for (const auto& behaviour : _behaviours) {
+            if(auto cast_component = std::dynamic_pointer_cast<BehaviourSubType>(behaviour.second))
+            {
+                output.push_back(cast_component);
+                _get_behaviours_cache[behaviour_sub_type_index].push_back(behaviour.second);
+            }
         }
     }
-    return return_vector;
+    return output;
 }
 
-template <typename BehaviourType>
-std::vector<std::weak_ptr<const BehaviourType>> GameObject::getBehaviours() const {
-    std::vector<std::weak_ptr<const BehaviourType>> return_vector;
-    for (const auto& behaviour : _behaviours) {
-        if(auto cast_component = std::dynamic_pointer_cast<BehaviourType>(behaviour.second))
-        {
-            return_vector.push_back(cast_component);
+template <typename BehaviourSubType>
+std::vector<std::weak_ptr<const BehaviourSubType>> GameObject::getBehaviours() const {
+    auto behaviour_sub_type_index = std::type_index(typeid(BehaviourSubType));
+    std::vector<std::weak_ptr<const BehaviourSubType>> output;
+    if (_get_behaviours_cache.count(behaviour_sub_type_index) != 0) {
+        auto& cached_output = _get_behaviours_cache[behaviour_sub_type_index];
+        std::transform(cached_output.begin(), cached_output.end(), std::back_inserter(output),
+            [](const std::weak_ptr<Behaviour>& cached_behaviour) {
+                return std::dynamic_pointer_cast<BehaviourSubType>(cached_behaviour.lock());
+            });
+    } else {
+        for (const auto& behaviour : _behaviours) {
+            if(auto cast_component = std::dynamic_pointer_cast<BehaviourSubType>(behaviour.second))
+            {
+                output.push_back(cast_component);
+                _get_behaviours_cache[behaviour_sub_type_index].push_back(behaviour.second);
+            }
         }
     }
-    return return_vector;
+    return output;
 }
 
 template <typename EventType>

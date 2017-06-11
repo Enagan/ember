@@ -60,7 +60,6 @@ void GameObject::onEnd() {
     _hasEnded = true;
 }
 
-
 void GameObject::Destroy() {
     scene().removeGameObject(object_id());
 }

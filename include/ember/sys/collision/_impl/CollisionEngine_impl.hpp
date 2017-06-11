@@ -1,5 +1,5 @@
 namespace ember {
-namespace system {
+namespace sys {
 namespace collision {
 
 template <typename SpatialPartitionSubType, typename... Args>
@@ -14,8 +14,13 @@ void CollisionEngine::hasSpatialPartitionerOfType() {
 }
 
 template <typename SpatialPartitionSubType>
-SpatialPartitionSubType& CollisionEngine::refSpatialPartitionerOfType() {
-    return *(dynamic_cast<SpatialPartitionSubType*>(_spatial_partitioner.get()));
+SpatialPartitionSubType& CollisionEngine::refSpatialPartitionerOfType() throw(std::invalid_argument) {
+    if (auto cast_spatial_partitioner = dynamic_cast<SpatialPartitionSubType*>(_spatial_partitioner.get())) {
+        return *(cast_spatial_partitioner);
+    } else {
+        throw std::invalid_argument("CollisionEngine::refSpatialPartitionerOfType - Engine has no partitioner of type " +
+            std::string(typeid(SpatialPartitionSubType).name()));
+    }
 }
 
 }

@@ -6,9 +6,13 @@ using namespace ember;
 Scene::Scene() {};
 
 Scene::~Scene() {
-    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
-	for (auto& gameObject : delayed_deletion_copy) {
+    auto game_object_deletion_copy = _objects_in_scene;
+	for (auto& gameObject : game_object_deletion_copy) {
 		gameObject.second->onEnd();
+	}
+    auto system_deletion_copy = _systems_in_scene;
+	for (auto& sys : system_deletion_copy) {
+		sys.second->onEnd();
 	}
 };
 
@@ -21,9 +25,18 @@ Scene& Scene::operator=(Scene&& other) {
 	return *this;
 }
 
+void Scene::RunUpdateCycle(double deltaT) {
+    if (!_hasStarted) {
+        onStart();
+    }
+    onPreUpdate();
+    onUpdate(deltaT);
+    onPostUpdate();
+}
+
 void Scene::onStart() {
 	_hasStarted = true;
-    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
+    std::map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
 	for (auto& game_object : delayed_deletion_copy) {
 		game_object.second->onStart();
 	}
@@ -33,7 +46,7 @@ void Scene::onStart() {
 }
 
 void Scene::onPreUpdate() {
-    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
+    std::map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
 	for (auto& game_object : delayed_deletion_copy) {
 		game_object.second->onPreUpdate();
         if(game_object.second->_behaviours_changed) {
@@ -46,7 +59,7 @@ void Scene::onPreUpdate() {
 }
 
 void Scene::onUpdate(double deltaT) {
-    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
+    std::map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
 	for (auto& game_object : delayed_deletion_copy) {
 		game_object.second->onUpdate(deltaT);
 	}
@@ -56,7 +69,7 @@ void Scene::onUpdate(double deltaT) {
 }
 
 void Scene::onPostUpdate() {
-    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
+    std::map<GameObject::id, std::shared_ptr<GameObject>> delayed_deletion_copy(_objects_in_scene);
 	for (auto& game_object : delayed_deletion_copy) {
 		game_object.second->onPostUpdate();
 	}
@@ -81,8 +94,11 @@ bool Scene::hasGameObject(GameObject::id index) const {
     return _objects_in_scene.count(index) == 1;
 }
 
-GameObject& Scene::getGameObject(GameObject::id index) {
-    return *_objects_in_scene.at(index);
+GameObject& Scene::refGameObject(GameObject::id index) throw(std::invalid_argument) {
+    if (_objects_in_scene.count(index) == 0) {
+        throw std::invalid_argument("Scene::refGameObject - No GameObject with id " + std::to_string(index) + " exists in scene");
+    }
+    return *_objects_in_scene[index];
 }
 
 void Scene::removeGameObject(GameObject::id index) {
@@ -93,11 +109,13 @@ void Scene::FilterGameObjectThroughAllSystems(const std::shared_ptr<GameObject>&
     for (auto& system_in_scene : _systems_in_scene) {
         system_in_scene.second->FilterGameObject(object);
     }
+    object->_behaviours_changed = false;
 }
 
 void Scene::FilterAllGameObjectsThroughSystem(const std::shared_ptr<BaseSystem>& system_to_filter) {
     for (const auto& game_object : _objects_in_scene) {
         system_to_filter->FilterGameObject(game_object.second);
+        game_object.second->_behaviours_changed = false;
     }
 }
 

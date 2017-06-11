@@ -29,7 +29,7 @@ SystemSubType& Scene::refSystem() throw(std::invalid_argument) {
 
 template <typename EventType>
 void Scene::BroadcastEvent(const EventType& event) {
-    std::unordered_map<GameObject::id, std::shared_ptr<GameObject>> traversal_copy(_objects_in_scene);
+    std::map<GameObject::id, std::shared_ptr<GameObject>> traversal_copy(_objects_in_scene);
     for (auto& game_object : traversal_copy) {
         game_object.second->CastEvent<EventType>(event);
     }
