@@ -2,35 +2,39 @@
 # Where this makefile is running from
 BUILD_ROOT=$(shell pwd)
 # The name of the executable to be created
-LIB_NAME := libember
+BIN_NAME := ember-test
+# Bin version, default will fetch from git tags
+GIT_VERSION := $(shell git describe --abbrev=4 --always --tags)
 # Compiler used
 CXX ?= g++
-# Ar settings to build the library
-AR ?= ar
-ARFLAGS = rcv
-# Set RANLIB to ranlib on systems that require it (Sun OS < 4, Mac OSX)
-# RANLIB  = ranlib
-RANLIB = true
-# Extension of source files used in the project
+# Extension of primary source files used in the project
 SRC_EXT = cpp
 # Extension of secondary source files used in the project
 SRC_EXT_2 = cc
 # Path to the source directory, relative to the makefile
 SRC_PATH = src
 # Path to the include directory, relative to the makefile
-INCL_PATH = include
+INCL_PATH = src
+# Space-separated pkg-config libraries used by this project
+LIBS =
+# libs to compile with
+RAW_LIBS = -lember
 # General compiler flags
 COMPILE_FLAGS = -std=c++14 -Wall -Wextra -Werror -g
 # Additional release-specific flags
-RCOMPILE_FLAGS = -D NDEBUG
+RCOMPILE_FLAGS = -D NDEBUG -D GITVERSION=\"$(GIT_VERSION)\"
 # Additional debug-specific flags
-DCOMPILE_FLAGS = -D DEBUG
+DCOMPILE_FLAGS = -D DEBUG -D GITVERSION=\"$(GIT_VERSION)\"
 # Add additional include paths
-INCLUDES = -I $(INCL_PATH)
-# Destination directory, like a jail or mounted system
-DESTDIR = /usr/local
-#### END PROJECT SETTINGS ####
+INCLUDES = -I $(INCL_PATH) -I $(BUILD_ROOT)/build/deps/include
+# General linker settings
+LINK_FLAGS = -L $(BUILD_ROOT)/build/deps/lib $(RAW_LIBS)
+# Additional release-specific linker settings
+RLINK_FLAGS =
+# Additional debug-specific linker settings
+DLINK_FLAGS =
 
+#### END PROJECT SETTINGS ####
 # Generally should not need to edit below this line
 
 # Obtains the OS type, either 'Darwin' (OS X) or 'Linux'
@@ -46,10 +50,6 @@ print-%: ; @echo $*=$($*)
 SHELL = /bin/bash
 # Clear built-in rules
 .SUFFIXES:
-# Programs for installation
-INSTALL = install
-INSTALL_PROGRAM = $(INSTALL)
-INSTALL_DATA = $(INSTALL) -m 644
 
 # Append pkg-config specific libraries if need be
 ifneq ($(LIBS),)
@@ -64,18 +64,21 @@ ifeq ($(V),true)
 	CMD_PREFIX :=
 endif
 
+export BUILD_PATH := $(BUILD_ROOT)/build
+
 # Build and output paths
-release: export BUILD_PATH := $(BUILD_ROOT)/build/release
 release: export BIN_PATH := $(BUILD_ROOT)/bin/release
 release: export ALL_INCLUDES := $(INCLUDES)
-debug: export BUILD_PATH := $(BUILD_ROOT)/build/debug
 debug: export BIN_PATH := $(BUILD_ROOT)/bin/debug
 debug: export ALL_INCLUDES := $(INCLUDES)
-install: export BIN_PATH := bin/release
 
 # Combine compiler and linker flags
 release: export PROJECT_SPECIFIC_CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(RCOMPILE_FLAGS)
+release: export PROJECT_SPECIFIC_LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(RLINK_FLAGS)
+release: export LD_RUN_PATH += $(BUILD_ROOT)/build/deps/lib
 debug: export PROJECT_SPECIFIC_CXXFLAGS := $(CXXFLAGS) $(COMPILE_FLAGS) $(DCOMPILE_FLAGS)
+debug: export PROJECT_SPECIFIC_LDFLAGS := $(LDFLAGS) $(LINK_FLAGS) $(DLINK_FLAGS)
+debug: export LD_RUN_PATH += $(BUILD_ROOT)/build/deps/lib
 
 
 # Find all source files in the source directory, sorted by most
@@ -125,46 +128,47 @@ endif
 
 # Standard, non-optimized release build
 .PHONY: release
-release: dirs
+release: dirs deps
 	@echo "Beginning release build"
 	@$(MAKE) all --no-print-directory
-	@cp -rf $(INCL_PATH)/. $(BIN_PATH)/include
 
 # Debug build for gdb debugging
 .PHONY: debug
 debug: dirs
 	@echo "Beginning debug build"
 	@$(MAKE) all --no-print-directory
-	@cp -rf $(INCL_PATH)/. $(BIN_PATH)/include
+
+# Compile project dependencies
+.PHONY: ember
+ember:
+	@mkdir -p ${BUILD_PATH}/deps
+	@cd .. && $(MAKE) && $(MAKE) install DESTDIR=${BUILD_PATH}/deps
+
+# Clean project dependencies
+.PHONY: clean_ember
+clean_ember:
+	@rm -rf ${BUILD_PATH}/deps
+	@cd .. && $(MAKE) clean
 
 # Create the directories used in the build
 .PHONY: dirs
 dirs:
 	@mkdir -p $(dir $(OBJECTS))
 	@mkdir -p $(BIN_PATH)
-	@mkdir -p $(BIN_PATH)/lib
-	@mkdir -p $(BIN_PATH)/include
-
-# Installs the lib and attached dependencies at a DESTDIR
-.PHONY: install
-install:
-	@echo "Installing to $(DESTDIR)/lib & $(DESTDIR)/include"
-	@cp -rf $(BIN_PATH)/. $(DESTDIR)
 
 # Removes all build files
 .PHONY: clean
 clean:
-	@$(RM) -rf build/
+	@$(RM) -rf build/*
 	@$(RM) -rf bin
 
 # Main rule, checks the executable and symlinks to the output
-all: $(BIN_PATH)/$(LIB_NAME)
+all: $(BIN_PATH)/$(BIN_NAME)
 
 # Link the executable
-$(BIN_PATH)/$(LIB_NAME): $(OBJECTS)
+$(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
 	@echo "Linking: $@"
-	@$(AR) $(ARFLAGS) $(BIN_PATH)/lib/$(LIB_NAME).a $(OBJECTS) 1>>/dev/null
-	@$(RANLIB) $(BIN_PATH)/lib/$(LIB_NAME).a  1>>/dev/null
+	$(CMD_PREFIX)$(CXX) $(OBJECTS) $(PROJECT_SPECIFIC_LDFLAGS) -o $@
 
 # Add dependency files, if they exist
 -include $(DEPS)

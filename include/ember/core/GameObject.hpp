@@ -2,7 +2,7 @@
 #define GameObject_hpp
 
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <memory>
 #include <iostream>
 #include <typeinfo>
@@ -14,10 +14,16 @@
 namespace ember {
 class Behaviour;
 class Scene;
+
+/// The Gameobject is one of the essential building blocks of Ember. In it's essence, it's purpose is to exist as an
+/// aggregate of behaviours, modifying itself, and others based solely on the behaviours it contains, and follows.
+/// The GameObject class is meant to be used in conjunction with the Scene and Behaviours, but like the Scene, it's should not be subclassed or modified.
 class GameObject {
     friend class Scene;
 public:
+    /// Type that defined the id of a GameObject. Identifies a gameobject as unique inside a scene.
     using id = std::size_t;
+
 public:
 	GameObject();
 	GameObject(GameObject&& other);
@@ -25,12 +31,6 @@ public:
     GameObject& operator=(const GameObject& other) = delete;
 	GameObject& operator=(GameObject&& other);
 	~GameObject();
-public:
-	void onStart();
-    void onPreUpdate();
-    void onUpdate(double deltaT);
-    void onPostUpdate();
-    void onPostCollision();
 
 public:
     inline GameObject::id object_id() const { return _id; }
@@ -45,7 +45,7 @@ public:
 
     /// Checks if the Game Object has a behaviour of the specified type (non-polymorphic, only accounts for behaviours of the exact type provided)
     template <typename BehaviourSubType>
-	bool hasBehaviour();
+	bool hasBehaviour() const;
 
     /// Fetches a non-polymorphic reference to a contained behaviour in the GameObject.
     /// Throws an exception if no such behaviour is present.
@@ -61,47 +61,45 @@ public:
     ///  or to potentially lock it for access post GameObject destruction.
     template <typename BehaviourSubType>
 	std::weak_ptr<BehaviourSubType> getBehaviour();
+    template <typename BehaviourSubType>
+    std::weak_ptr<const BehaviourSubType> getBehaviour() const;
 
     /// Gets all weak pointers of behaviours that either are a BehaviourType or subclasses of it.
     /// Usefull if you need to fetch all behaviours with a common parent, such as behaviour addons (for example, SerializableInto's).
     /// This method is expensive to perform, as it will have to go through all behaviours in the GameObject, use refComponent or getComponent
     ///   if you are trying to reach a specific component.
-    template <typename BehaviourType>
-	std::vector<std::weak_ptr<BehaviourType>> getBehaviours();
+    template <typename BehaviourSubType>
+	std::vector<std::weak_ptr<BehaviourSubType>> getBehaviours();
+    template <typename BehaviourSubType>
+    std::vector<std::weak_ptr<const BehaviourSubType>> getBehaviours() const;
 
     /// Triggers an event through all the child behaviours that have the ListenTo Addon (are subclasses of ListenTo<EventType>)
     template <typename EventType>
 	void CastEvent(const EventType& event);
 
-    /// Calls SerializeInto or PartialSerializeInto on all child behaviours that have the SerializableInto Addon
-    /// (are subclasses of SerializableInto) The resulting object into, will be cached, as such, further calls to this function
-    /// will return the cached instance of SerializableInto& into. As such, the input parameter type must implement a valid copy
-    /// constructor
+    /// Serializes the gameobject into the object of the data type provided.
+    /// Serialization works by going through all of the gameobjects contained behaviours and attemtping to serialize them to this datatype
+    /// As long as at least one behaviour is able to serialize itself successfully, this method will return true, and the serializations will be contained in
+    /// 'into'.
+    /// Serializations are cached until further changes. This means that if this method is called several times, internally,
+    /// The behaviours serialization functions will only be called again if the behaviours indicate that something in their internal state has changed.
     template <typename SerializableInto>
     bool SerializeInto(SerializableInto& into);
+
+    /// Equal to the above function, but won't contain the full serialization of the GameObject. Behaviours can define partial serializations (usually only with
+    /// mission critical data, or only with a change set since the previous serialization call). This method will call those partial serialization methods.
     template <typename SerializableInto>
     bool PartialSerializeInto(SerializableInto& into);
 
-    /// Removes self from scene and deallocates
+    /// Removes GameObject from scene and deallocates it.
+    /// Keep in mind that Scene guarantees that Object/Behaviour deletion will ONLY happen in between Update Cycle callbacks
+    /// what this means, for example, is that it's safe to delete objects at any time inside those callbacks.
+    /// In a behaviour, on the 'onPreUpdate', 'onUpdate', 'onPostUpdate' calls, if you call Destroy (or Scene::removeGameObject, which is equivalent)
+    /// then you can be sure that the object will only actually be deleted after that update cycle callback itself is called on every other GameObject.
     void Destroy();
 
-private:
-    void CheckForCacheInvalidation();
-
-private:
-    GameObject::id _id = 0;
-	bool _hasStarted{ false };
-    std::size_t _next_behaviour_index = 0;
-	std::unordered_map<std::type_index, std::shared_ptr<Behaviour>> _behaviours;
-
-    struct SerializedCacheBase;
-    template <typename SerializableType> struct SerializedCacheSub;
-    std::unordered_map<std::type_index, std::unique_ptr<SerializedCacheBase>> _serialization_cache;
-    std::unordered_map<std::type_index, std::unique_ptr<SerializedCacheBase>> _partial_serialization_cache;
-
-    // Weak pointer to the scene the gameobject is attached to. If the gameobject exists
-    // The scene WILL exist
-    class Scene* _parent_scene = nullptr;
+    // Private members of GameObject contained in header
+    #include "_priv/GameObject_priv.hpp"
 };
 }
 #include "_impl/GameObject_impl.hpp"

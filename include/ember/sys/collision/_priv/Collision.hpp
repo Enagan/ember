@@ -2,7 +2,10 @@
 #define Ember_Collision_hpp
 
 namespace ember {
+namespace sys {
 namespace collision {
+
+/// Collision is a purely internal concept, as such its placed in the priv folder.
 
 template <typename MyCollider>
 class Collision {
@@ -13,5 +16,7 @@ private:
     std::weak_ptr<class BaseCollider> _collided_with;
 };
 
-}}
+}
+}
+}
 #endif
